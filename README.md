@@ -5,6 +5,7 @@ This project is about a minimalistic GitHub client, which allows user to search 
 - Search Github users with on-the-fly searching
 - See Github user detail information such as number of followers, following, location, company & biography
 ## Apply Clean Architect
+![https://github.com/npkhung92/github-clients/blob/master/github-images/clean_architecture_reloaded_layers.png]
 This project is inspired by Clean Architect with 3 layers:
 - Domain
 - Data
