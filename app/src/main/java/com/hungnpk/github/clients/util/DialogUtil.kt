@@ -11,12 +11,18 @@ class DialogUtil {
         fun showSimpleDialog(
             context: Context,
             title: String,
-            message: String
+            message: String,
+            confirmTitle: String,
+            confirmAction: (() -> Unit)? = null
         ) {
             MaterialAlertDialogBuilder(context)
                 .setTitle(title)
                 .setMessage(message)
                 .setCancelable(true)
+                .setNeutralButton(confirmTitle) { dialog, _ ->
+                    confirmAction?.invoke()
+                    dialog.dismiss()
+                }
                 .create().show()
         }
     }

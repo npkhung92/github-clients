@@ -1,6 +1,8 @@
 package com.hungnpk.github.clients.di
 
 import android.content.Context
+import com.facebook.stetho.okhttp3.StethoInterceptor
+import com.hungnpk.github.clients.BuildConfig
 import com.hungnpk.github.clients.data.repository.GithubUsersRepositoryImpl
 import com.hungnpk.github.clients.data.source.GithubService
 import com.hungnpk.github.clients.domain.repository.GithubUsersRepository
@@ -40,7 +42,8 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        interceptor: StethoInterceptor
     ) : OkHttpClient {
         return OkHttpClient.Builder()
             .cache(Cache(context.cacheDir, Constants.CACHE_API_SIZE.toLong()))
@@ -48,7 +51,18 @@ class NetworkModule {
             .writeTimeout(Constants.API_TIMEOUT, TimeUnit.SECONDS)
             .readTimeout(Constants.API_TIMEOUT, TimeUnit.SECONDS)
             .callTimeout(Constants.API_TIMEOUT, TimeUnit.SECONDS)
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    addNetworkInterceptor(interceptor)
+                }
+            }
             .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStethoInterceptor(): StethoInterceptor {
+        return StethoInterceptor()
     }
 
     @Provides

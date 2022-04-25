@@ -10,7 +10,9 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.Job
 
 abstract class BaseFragment<B: ViewDataBinding>: Fragment() {
     lateinit var binding: B
@@ -46,5 +48,11 @@ abstract class BaseFragment<B: ViewDataBinding>: Fragment() {
 
     protected fun goBack() {
         findNavController().navigateUp()
+    }
+
+    protected fun launchSuspend(suspendFunc: suspend () -> Unit): Job {
+        return viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            suspendFunc()
+        }
     }
 }

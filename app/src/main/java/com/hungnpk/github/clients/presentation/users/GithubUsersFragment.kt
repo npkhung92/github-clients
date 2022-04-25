@@ -5,17 +5,21 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.asLiveData
 import androidx.navigation.fragment.findNavController
+import androidx.paging.CombinedLoadStates
+import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.hungnpk.github.clients.R
 import com.hungnpk.github.clients.databinding.FragmentUsersBinding
+import com.hungnpk.github.clients.domain.model.User
 import com.hungnpk.github.clients.presentation.base.BaseFragment
 import com.hungnpk.github.clients.presentation.common.MarginItemDecoration
+import com.hungnpk.github.clients.util.DialogUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /**
  * A [Fragment] class presenting a list of Github users.
@@ -31,15 +35,20 @@ class GithubUsersFragment(override val layout: Int = R.layout.fragment_users) :
             selectedUser.username?.let { name ->
                 navigateToDetail(name)
             }
+        }.apply {
+            launchSuspend {
+                loadStateFlow.asLiveData().observe(viewLifecycleOwner) {
+                    handleLoadState(it)
+                }
+            }
         }
     }
 
     override fun FragmentUsersBinding.initViews() {
-        this@GithubUsersFragment.viewModel.setupViewModel()
+        viewModel.setupViewModel()
         setupUserRecyclerView()
         setupSearchView()
         setupSwipeRefreshView()
-        bindViewModel()
     }
 
     private fun FragmentUsersBinding.setupSearchView() {
@@ -67,16 +76,11 @@ class GithubUsersFragment(override val layout: Int = R.layout.fragment_users) :
         }
     }
 
-    private fun FragmentUsersBinding.bindViewModel() {
-        this.viewModel = this@GithubUsersFragment.viewModel
-        lifecycleOwner = viewLifecycleOwner
-    }
-
     private fun FragmentUsersBinding.setupSwipeRefreshView() {
         srlUsers.apply {
             setColorSchemeColors(getColor(R.color.ocean_magic_blue))
             setOnRefreshListener {
-                handleSearch()
+                usersAdapter.refresh()
             }
         }
     }
@@ -99,12 +103,45 @@ class GithubUsersFragment(override val layout: Int = R.layout.fragment_users) :
         }
     }
 
+    private fun FragmentUsersBinding.toggleLoading(show: Boolean) {
+        ivProgress.isVisible = show
+    }
+
     private fun GithubUsersViewModel.setupViewModel() {
         usersLiveData.observe(viewLifecycleOwner) {
-            binding.checkAndStopRefreshing()
-            binding.switchStateOfUsersView(it.isEmpty())
-            usersAdapter.submitList(it)
+            handleUpdateUsersList(it)
         }
+    }
+
+    private fun handleUpdateUsersList(users: PagingData<User>) {
+        binding.checkAndStopRefreshing()
+        launchSuspend {
+            usersAdapter.submitData(users)
+        }
+    }
+
+    private fun handleLoadState(loadState: CombinedLoadStates) {
+        binding.toggleLoading(loadState.refresh is LoadState.Loading)
+        binding.switchStateOfUsersView(loadState.refresh is LoadState.NotLoading && usersAdapter.itemCount == 0)
+        val errorState = loadState.source.append as? LoadState.Error
+            ?: loadState.source.prepend as? LoadState.Error
+            ?: loadState.append as? LoadState.Error
+            ?: loadState.prepend as? LoadState.Error
+        errorState?.let {
+            showErrorDialog(it.error.message) {
+                usersAdapter.retry()
+            }
+        }
+    }
+
+    private fun showErrorDialog(message: String?, retryAction: (() -> Unit)? = null) {
+        DialogUtil.showSimpleDialog(
+            context = requireContext(),
+            title = getString(R.string.exception_title),
+            message = message ?: getString(R.string.exception_general_msg),
+            confirmTitle = getString(R.string.exception_retry_btn_label),
+            confirmAction = retryAction
+        )
     }
 
     private fun navigateToDetail(name: String) {
@@ -113,7 +150,7 @@ class GithubUsersFragment(override val layout: Int = R.layout.fragment_users) :
 
     private fun handleSearch(keyword: String? = null) {
         searchJob?.cancel()
-        searchJob = lifecycleScope.launch {
+        searchJob = launchSuspend {
             delay(SEARCH_DELAY)
             keyword?.let {
                 viewModel.saveKeyword(it)

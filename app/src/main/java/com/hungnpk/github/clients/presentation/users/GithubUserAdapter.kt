@@ -1,6 +1,7 @@
 package com.hungnpk.github.clients.presentation.users
 
 import android.view.ViewGroup
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,21 +13,23 @@ import com.hungnpk.github.clients.domain.model.User
  */
 class GithubUserAdapter(
     private val adapterListener: OnGithubUserAdapterListener? = null
-) : ListAdapter<User, GithubUserViewHolder>(
+) : PagingDataAdapter<User, GithubUserViewHolder>(
     GithubUserDiffCallback()
 ) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GithubUserViewHolder {
         return GithubUserViewHolder.create(parent).apply {
             adapterListener?.let { listener ->
                 itemView.setOnClickListener {
-                    listener.viewDetail(getItem(adapterPosition))
+                    val selectedItem = getItem(bindingAdapterPosition) ?: return@setOnClickListener
+                    listener.viewDetail(selectedItem)
                 }
             }
         }
     }
 
     override fun onBindViewHolder(holder: GithubUserViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val selectedItem = getItem(position) ?: return
+        holder.bind(selectedItem)
     }
 }
 

@@ -48,8 +48,11 @@ class GithubUserDetailFragment(override val layout: Int = R.layout.fragment_user
             DialogUtil.showSimpleDialog(
                 context = requireContext(),
                 title = getString(R.string.exception_title),
-                message = it.message ?: getString(R.string.exception_general_msg)
-            )
+                message = it.message ?: getString(R.string.exception_general_msg),
+                confirmTitle = getString(R.string.exception_retry_btn_label)
+            ) {
+                loadUserInformation(args.username)
+            }
         }
     }
 
