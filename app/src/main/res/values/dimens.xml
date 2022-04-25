@@ -1,3 +1,16 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="avatar_size">48dp</dimen>
+    <dimen name="avatar_full_size">96dp</dimen>
+    <dimen name="button_size">32dp</dimen>
+    <dimen name="padding_default">8dp</dimen>
+    <dimen name="margin_large">16dp</dimen>
+    <dimen name="corner_default">6dp</dimen>
+    <dimen name="elevation_default">2dp</dimen>
+
+    <dimen name="text_small">14sp</dimen>
+    <dimen name="text_medium">16sp</dimen>
+    <dimen name="text_large">18sp</dimen>
+    <dimen name="text_xlarge">20sp</dimen>
+    <dimen name="text_xxlarge">22sp</dimen>
 </resources>
