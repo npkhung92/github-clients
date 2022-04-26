@@ -12,6 +12,8 @@ import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.hungnpk.github.clients.R
+import com.hungnpk.github.clients.util.DialogUtil
 import kotlinx.coroutines.Job
 
 abstract class BaseFragment<B: ViewDataBinding>: Fragment() {
@@ -54,5 +56,15 @@ abstract class BaseFragment<B: ViewDataBinding>: Fragment() {
         return viewLifecycleOwner.lifecycleScope.launchWhenResumed {
             suspendFunc()
         }
+    }
+    protected fun showErrorDialog(message: String?, retryAction: (() -> Unit)? = null) {
+        DialogUtil.showSimpleDialog(
+            context = requireContext(),
+            title = getString(R.string.exception_title),
+            message = message ?: getString(R.string.exception_general_msg),
+            confirmTitle = getString(R.string.exception_retry_btn_label),
+            confirmAction = retryAction,
+            cancelTitle = getString(R.string.exception_cancel_btn_label)
+        )
     }
 }

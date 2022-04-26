@@ -16,6 +16,7 @@ import com.hungnpk.github.clients.databinding.FragmentUsersBinding
 import com.hungnpk.github.clients.domain.model.User
 import com.hungnpk.github.clients.presentation.base.BaseFragment
 import com.hungnpk.github.clients.presentation.common.MarginItemDecoration
+import com.hungnpk.github.clients.presentation.common.hideKeyboard
 import com.hungnpk.github.clients.util.DialogUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -127,21 +128,12 @@ class GithubUsersFragment(override val layout: Int = R.layout.fragment_users) :
             ?: loadState.source.prepend as? LoadState.Error
             ?: loadState.append as? LoadState.Error
             ?: loadState.prepend as? LoadState.Error
+            ?: loadState.refresh as? LoadState.Error
         errorState?.let {
             showErrorDialog(it.error.message) {
                 usersAdapter.retry()
             }
         }
-    }
-
-    private fun showErrorDialog(message: String?, retryAction: (() -> Unit)? = null) {
-        DialogUtil.showSimpleDialog(
-            context = requireContext(),
-            title = getString(R.string.exception_title),
-            message = message ?: getString(R.string.exception_general_msg),
-            confirmTitle = getString(R.string.exception_retry_btn_label),
-            confirmAction = retryAction
-        )
     }
 
     private fun navigateToDetail(name: String) {
@@ -152,6 +144,7 @@ class GithubUsersFragment(override val layout: Int = R.layout.fragment_users) :
         searchJob?.cancel()
         searchJob = launchSuspend {
             delay(SEARCH_DELAY)
+            binding.etSearchUsers.hideKeyboard()
             keyword?.let {
                 viewModel.saveKeyword(it)
             }

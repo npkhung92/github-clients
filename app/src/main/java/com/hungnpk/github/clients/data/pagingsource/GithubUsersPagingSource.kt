@@ -3,13 +3,12 @@ package com.hungnpk.github.clients.data.pagingsource
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.google.gson.Gson
-import com.hungnpk.github.clients.data.mapper.toUser
+import com.hungnpk.github.clients.data.mapper.toUsers
 import com.hungnpk.github.clients.data.source.GithubService
 import com.hungnpk.github.clients.domain.model.User
 import com.hungnpk.github.clients.domain.response.ErrorResponse
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
+import java.nio.charset.Charset
 
 class GithubUsersPagingSource(
     private val keyword: String,
@@ -30,24 +29,30 @@ class GithubUsersPagingSource(
                 page = nextPageNumber,
                 perPage = params.loadSize,
             )
-            return if (response.isSuccessful) {
-                val users = response.body()?.items ?: emptyList()
-                val nextKey =
-                    if (users.isEmpty() || users.size < params.loadSize) {
-                        null
-                    } else {
-                        nextPageNumber + 1
-                    }
-                LoadResult.Page(
-                    data = response.body()?.items?.map { userResponse -> userResponse.toUser() }
-                        ?: emptyList(),
-                    prevKey = if (nextPageNumber == 0) null else nextPageNumber - 1,
-                    nextKey = nextKey
-                )
-            } else {
-                LoadResult.Error(
+            return when {
+                response.isSuccessful -> {
+                    val users = response.body()?.items ?: emptyList()
+                    val nextKey =
+                        if (users.isEmpty() || users.size < params.loadSize) {
+                            null
+                        } else {
+                            nextPageNumber + 1
+                        }
+                    LoadResult.Page(
+                        data = response.body()?.toUsers() ?: emptyList(),
+                        prevKey = if (nextPageNumber == 0) null else nextPageNumber - 1,
+                        nextKey = nextKey
+                    )
+                }
+                response.code() == INVALID_KEYWORD_STATUS ->
+                    LoadResult.Page(
+                        data = emptyList(),
+                        prevKey = null,
+                        nextKey = null
+                    )
+                else -> LoadResult.Error(
                     Exception(
-                        response.message() ?: getErrorMessage(response = response.errorBody())
+                        getErrorMessage(response.errorBody())
                     )
                 )
             }
@@ -56,17 +61,23 @@ class GithubUsersPagingSource(
         }
     }
 
-    private suspend fun getErrorMessage(response: ResponseBody?): String? {
+    private fun getErrorMessage(responseBody: ResponseBody?): String? {
         return try {
-            val error = withContext(Dispatchers.IO) {
-                response?.string()
+            val clonedErrorBody = responseBody?.let {
+                val source = it.source()
+                val bufferedCopy = source.buffer.clone()
+                bufferedCopy.readString(Charset.forName("UTF-8"))
             }
             Gson().fromJson(
-                error,
+                clonedErrorBody,
                 ErrorResponse::class.java
             ).message
         } catch (e: Exception) {
             null
         }
+    }
+
+    companion object {
+        private const val INVALID_KEYWORD_STATUS = 422
     }
 }

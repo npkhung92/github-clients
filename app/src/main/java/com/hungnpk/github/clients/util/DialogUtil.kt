@@ -13,14 +13,20 @@ class DialogUtil {
             title: String,
             message: String,
             confirmTitle: String,
-            confirmAction: (() -> Unit)? = null
+            confirmAction: (() -> Unit)? = null,
+            cancelTitle: String,
+            cancelAction: (() -> Unit)? = null
         ) {
             MaterialAlertDialogBuilder(context)
                 .setTitle(title)
                 .setMessage(message)
                 .setCancelable(true)
-                .setNeutralButton(confirmTitle) { dialog, _ ->
+                .setPositiveButton(confirmTitle) { dialog, _ ->
                     confirmAction?.invoke()
+                    dialog.dismiss()
+                }
+                .setNegativeButton(cancelTitle) { dialog, _ ->
+                    cancelAction?.invoke()
                     dialog.dismiss()
                 }
                 .create().show()

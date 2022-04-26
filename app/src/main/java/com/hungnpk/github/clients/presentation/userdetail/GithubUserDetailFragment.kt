@@ -6,7 +6,6 @@ import androidx.navigation.fragment.navArgs
 import com.hungnpk.github.clients.R
 import com.hungnpk.github.clients.databinding.FragmentUserDetailBinding
 import com.hungnpk.github.clients.presentation.base.BaseFragment
-import com.hungnpk.github.clients.util.DialogUtil
 import com.hungnpk.github.clients.util.ImageUtil
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -14,7 +13,8 @@ import dagger.hilt.android.AndroidEntryPoint
  * A [Fragment] class presenting detailed information of Github User.
  */
 @AndroidEntryPoint
-class GithubUserDetailFragment(override val layout: Int = R.layout.fragment_user_detail) : BaseFragment<FragmentUserDetailBinding>() {
+class GithubUserDetailFragment(override val layout: Int = R.layout.fragment_user_detail) :
+    BaseFragment<FragmentUserDetailBinding>() {
     private val viewModel: GithubUserDetailViewModel by viewModels()
     private val args: GithubUserDetailFragmentArgs by navArgs()
 
@@ -45,12 +45,7 @@ class GithubUserDetailFragment(override val layout: Int = R.layout.fragment_user
             binding.showUserAvatar(user?.avatarUrl)
         }
         failure.observe(viewLifecycleOwner) {
-            DialogUtil.showSimpleDialog(
-                context = requireContext(),
-                title = getString(R.string.exception_title),
-                message = it.message ?: getString(R.string.exception_general_msg),
-                confirmTitle = getString(R.string.exception_retry_btn_label)
-            ) {
+            showErrorDialog(getString(R.string.exception_retry_btn_label)) {
                 loadUserInformation(args.username)
             }
         }

@@ -13,4 +13,5 @@
     <string name="exception_title">Something happened</string>
     <string name="exception_general_msg">An error has occurred, please try again later.</string>
     <string name="exception_retry_btn_label">Retry</string>
+    <string name="exception_cancel_btn_label">Cancel</string>
 </resources>
