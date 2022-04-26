@@ -1,7 +1,11 @@
 # github-clients
 This project is about a minimalistic GitHub client, which allows user to search through GitHub users and view their profiles.
-![Screenshot 1](https://github.com/npkhung92/github-clients/blob/master/github-images/screenshot1.jpg)
-![Screenshot 2](https://github.com/npkhung92/github-clients/blob/master/github-images/screenshot2.jpg)
+
+
+<img src="https://github.com/npkhung92/github-clients/blob/master/github-images/screenshot2.jpg" width="400">
+<img src="https://github.com/npkhung92/github-clients/blob/master/github-images/screenshot1.jpg" width="400">
+
+
 ## Functionality
 - Search Github users with on-the-fly searching
 - See Github user detail information such as number of followers, following, location, company & biography
